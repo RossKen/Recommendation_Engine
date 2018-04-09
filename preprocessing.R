@@ -1,7 +1,7 @@
 # This script is used to create:
 # 1) Movie search matrix - search.csv
 # 2) User profiles - users.csv
-# from our initial datasets (movies.csv, links.csv, ratings.csv, tags.csv)
+# from our initial datasets (movies.csv & ratings.csv)
 
 library(magrittr)
 library(recommenderlab)
@@ -11,10 +11,10 @@ library(reshape2)
 
 # Data Load ----
 
-links <- read.csv("data/links.csv")
+links <- read.csv("data/links.csv") # not used currently
 movies <- read.csv("data/movies.csv", stringsAsFactors = FALSE)
-rating <- read.csv("data/ratings.csv")
-tags <- read.csv("data/tags.csv")
+ratings <- read.csv("data/ratings.csv")
+tags <- read.csv("data/tags.csv") # not used currently
 
 # Movie Search Matrix ----
 
@@ -68,3 +68,34 @@ colnames(search_matrix) <- c('movieId', 'title', "year", genres_list)
 write.csv(search_matrix, "data/search.csv")
 
 # User Profiles ----
+
+binary_ratings <- ratings
+
+# map ratings to binary - SIMPLIFICATION FOR INITIAL IMPLEMENTATION - REVISIT LATER
+for (i in 1:nrow(binary_ratings)){
+  if (binary_ratings[i, 3] > 3){
+    binary_ratings[i, 3] <- 1
+  } else {
+  binary_ratings[i, 3] <- -1
+  }
+} # This is slow - come back and use apply functions if time allows
+
+# test <- function(i){
+#   if (binary_ratings[i, 3] > 3){
+#   binary_ratings[i, 3] <- 1
+#   } else {
+#   binary_ratings[i, 3] <- -1
+#   }
+# }
+# 
+# lapply(binary_ratings, test)
+
+# put into correct format (not tidy)
+binary_ratings <- dcast(binary_ratings, movieId~userId, value.var = "rating", na.rm=FALSE)
+binary_ratings[is.na(binary_ratings)] <- 0  
+
+# rows are movie ids, so remove movieId column
+
+binary_ratings <- binary_ratings[,-1]
+
+      
